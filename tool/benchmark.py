@@ -2,20 +2,55 @@ import os
 import string
 from tool import cmd, log
 
-def calc_benchmark(method, lang, n, r, debug=False):
+def calc_real_benchmark(method, lang, n, r):
     """
     calculate the benchmark of the method of the language.
 
     Parameters
     -------
     method : str
-        the method of the calclations of benchmarks.
+        the method which is wanted to calculate the benchmark.
     lang : str
-        the language which is wanted to calculate a benchmark.
+        the language which is wanted to calculate the benchmark.
     n : int
-        the number of the calclations of benchmarks.
+        the number of executions of the method.
     r : int
-        the number of repeat. It will be the number of each result lists.
+        the number of repeat.
+
+    Returns
+    -------
+    real_result : double
+        the avg of real execution time of the method of the language.
+    """
+    # run method at first
+    _results = run(method, lang, n, r)
+    # also run the method 'nothing' (to measure execution time of lang cmd itself)
+    _results_nothing = run('nothing', lang, n, r)
+    # calc avg
+    _avg = sum(_results) / r
+    _avg_nothing = sum(_results_nothing) / r
+
+    # substract the execution time of 'nothing'
+    _real_result = _avg - _avg_nothing
+    if _real_result < 0:
+        RuntimeError(f"Execution Time Should Not Be -x: Maybe the cause is unstable cmd runtime (= 'nothing'), please increase 'r' to reduce the effect. time: {_real_result}")
+    return _real_result
+
+def run(method, lang, n, r, debug=False):
+    """
+    run the method to calculate the benchmark of the language.
+    After running this, you need to calculate the results to extract some benchmarks.
+
+    Parameters
+    -------
+    method : str
+        the method which is wanted to calculate some benchmarks.
+    lang : str
+        the language which is wanted to calculate some benchmarks.
+    n : int
+        the number of executions of the method.
+    r : int
+        the number of repeat. It will be the length of results.
     debug: bool
         print progress or not
 
