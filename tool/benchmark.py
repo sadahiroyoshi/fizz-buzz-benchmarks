@@ -1,8 +1,8 @@
 import os
 import string
-from tool import cmd
+from tool import cmd, log
 
-def calc_benchmark(method, lang, n, r):
+def calc_benchmark(method, lang, n, r, debug=False):
     """
     calculate the benchmark of the method of the language.
 
@@ -16,31 +16,37 @@ def calc_benchmark(method, lang, n, r):
         the number of the calclations of benchmarks.
     r : int
         the number of repeat. It will be the number of each result lists.
+    debug: bool
+        print progress or not
 
     Returns
     -------
     results : list
         the repeated benchmark results of the method of the language.
     """
+
+    # only for explanation of this method.
+    _logger = log.build_logger(__name__, debug=debug)
+
+    _logger.debug(f"{lang} started...")
     _compile_cmd, _cmd = _get_benchmark_cmds(lang, method)
-    print(f"{lang} running...")
 
     # run compile in advance
     if _compile_cmd:
-        print(f"compile:{_compile_cmd}")
+        _logger.debug(f"compile: {' '.join(_compile_cmd)}")
         cmd.run(_compile_cmd)
 
     # run cmd
     _args = [str(n)]
-    print(f"run:{_cmd + _args}")
+    _logger.debug(f"run {r} times: {' '.join(_cmd + _args)}")
     # `number=1` as the method of each langs are called {n} times in each scripts
     # `repeat=(r + 1)` as the first run will be ignored
     _results = cmd.calculate((_cmd + _args), number=1, repeat=(r + 1))
 
-    print("ignore the first run as noise removing")
+    _logger.debug("ignore the first run as noise removing")
     _results.pop(0)
 
-    print(f"{lang} finished...")
+    _logger.debug(f"{lang} finished...")
     return _results
 
 def _get_benchmark_cmds(lang, method):
